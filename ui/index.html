@@ -1,0 +1,76 @@
+<!doctype html>
+<html ng-app="dns">
+<head>
+	<meta charset="utf-8">
+	<title>DNS Editor</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.js"></script>
+	<style>
+		body { margin: 30px 30px; }
+		ul { margin: 0; padding: 0; list-style-type: none; }
+	</style>
+</head>
+<body ng-controller="Controller">
+
+<h1>DNS</h1>
+
+<div class="alert alert-success" role="alert" ng-click="success = null" ng-show="success">Changes saved</div>
+<div class="alert alert-danger" role="alert" ng-click="error = null" ng-show="error">Error</div>
+
+<input type="password" ng-model="password" placeholder="Password" class="form-control"><br>
+
+<table class="table table-bordered">
+<tr ng-repeat-start="entry in entries">
+	<td colspan="3">
+		<input type="text" class="form-control" ng-model="entry.domain" placeholder="Domain e.g. blah.example.org" />
+	</td>
+</tr>
+<tr ng-repeat="record in entry.records">
+	<td>
+		<select class="form-control" ng-model="record.type">
+			<option value="A">A</option>
+			<option value="CNAME">CNAME</option>
+		</select>
+	</td>
+	<td>
+		<input type="text" placeholder="Address" class="form-control" ng-model="record.address">
+	</td>
+	<td>
+		<input type="number" placeholder="TTL" class="form-control" ng-model="record.ttl">
+	</td>
+</tr>
+<tr ng-repeat-end>
+	<td colspan="3">
+		<a href ng-click="entry.records.push({})">Add Record</a>
+	</td>
+</tr>
+</table>
+
+<a href ng-click="entries.push({ records: [] })">Add Domain</a>
+
+<button class="pull-right btn btn-primary" ng-click="save()">Save Changes</button>
+
+<script>
+angular.module('dns', [])
+	.controller('Controller', ['$scope', '$http', function($scope, $http) {
+		$scope.entries = [];
+		$scope.password = '';
+
+		$http.get('/load').success(function(entries) {
+			$scope.entries = entries;
+		});
+
+		$scope.save = function() {
+			$scope.success = $scope.error = null;
+			$http.post('/save?password=' + $scope.password, $scope.entries).success(function() {
+				$scope.success = true;
+			}).error(function() {
+				$scope.error = true;
+			});
+		};
+	}]);
+</script>
+
+</body>
+</html>

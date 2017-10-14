@@ -1,0 +1,86 @@
+defaultTasks 'build-dev'
+
+ext {
+	CONTAINER_NAME = "docker-dns-server"
+	TAG = getTheTag()
+	IMAGE_NAME = "${CONTAINER_NAME}:$TAG"
+	WORKDIR = "/opt/${CONTAINER_NAME}"
+}
+
+/**
+ * roda o sistema em modo dev
+ * este método já chama o build e up necessário
+ */
+task 'build-dev' (dependsOn: [
+	'docker-server-dev-build', 'docker-server-dev-up'
+	]) << {
+
+}
+
+/**
+ * roda o sistema em modo test (com a base de dados do src)
+ * este método já chama o build e up necessário
+ */
+task 'build-test' (dependsOn: [
+	]) << {
+
+}
+
+/**
+ * roda o servidor em modo dev
+ * este método já chama o build e up necessário
+ */
+task 'docker-server-dev-build' (type:Exec) {
+	commandLine = ['docker', 'build', '--rm', '--tag',
+		IMAGE_NAME, '.'
+	]
+}
+
+/**
+ * roda o sistema de mock
+ */
+task 'docker-server-dev-up' (type:Exec) {
+	def pwd = new File(".").absolutePath
+	removeContainer(CONTAINER_NAME)
+	commandLine = [
+		'docker', 'run', '-d', '--hostname', CONTAINER_NAME,
+		'--expose', "53",
+		'--workdir', "${WORKDIR}",
+		'--volume',
+			"${pwd}/:${WORKDIR}",
+		'--name', CONTAINER_NAME, IMAGE_NAME,
+		'node', 'app.js'
+	]
+}
+
+/**
+ * apaga todas as imagens e containers
+ * gerados por este projeto
+ */
+task 'docker-clear' << {
+	removeImage(CONTAINER_NAME)
+}
+
+def removeLast(String str) {
+	str.substring(0, str.length()-1);
+}
+def getTheTag(){
+	def tag = ['git', 'describe', '--abbrev=0', '--tags'].execute().text;
+	if(tag.length() == 1)
+		return removeLast(tag)
+	return '1.0.0'
+}
+def removeContainer(String image){
+	def buff = new StringBuffer();
+	def proc = ['docker', 'rm', '-f', image].execute();
+	proc.consumeProcessOutput(buff, buff)
+	proc.waitForOrKill(10000);
+	//println buff
+}
+def removeImage(String image){
+	def buff = new StringBuffer();
+	def proc = ['docker', 'rmi', '-f', image].execute();
+	proc.consumeProcessOutput(buff, buff)
+	proc.waitForOrKill(10000);
+	//println buff
+}

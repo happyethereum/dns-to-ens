@@ -1,0 +1,25 @@
+{
+  "name": "docker-dns-server",
+  "version": "1.0.0",
+  "description": "A node dns server to resolve docker and others hostnames",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "keywords": [
+    "node",
+    "dns",
+    "server",
+    "docker"
+  ],
+  "author": "Elvis de Freitas",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "async": "^1.5.2",
+    "body-parser": "^1.15.0",
+    "express": "^4.13.4",
+    "http-proxy": "^1.16.2",
+    "native-dns": "^0.7.0"
+  }
+}
